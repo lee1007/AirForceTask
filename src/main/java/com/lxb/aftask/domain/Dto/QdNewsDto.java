@@ -1,4 +1,4 @@
-package com.lxb.aftask.domain.entity;
+package com.lxb.aftask.domain.Dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QdNewsEntity implements Serializable {
+public class QdNewsDto implements Serializable {
 
     private int newsId;
 //    新闻栏目
@@ -51,6 +51,10 @@ public class QdNewsEntity implements Serializable {
     private String attachmentName;
     private String batch;
     private String flagDel;
+//    title翻译
+    private String  title_zh;
+//    text_content翻译
+    private String  textContent_zh;
 
 
 }
