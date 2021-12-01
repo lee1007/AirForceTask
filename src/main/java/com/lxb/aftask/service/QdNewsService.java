@@ -42,6 +42,8 @@ public class QdNewsService {
         JSONPObject jsonpObject = new JSONPObject(JSON.toJSONString(jsonMap));
 
         String translateAPI = "http://43.240.136.178/nmt2/translate";
+
+
         return "1";
     }
 }
