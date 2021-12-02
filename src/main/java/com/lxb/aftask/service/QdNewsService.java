@@ -12,6 +12,9 @@ import com.lxb.aftask.domain.Dto.QdNewsDto;
 import com.lxb.aftask.domain.entity.QdNewsEntity;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -64,6 +67,7 @@ public class QdNewsService {
                     qdNews.getFlagDel(),
                     title_zh.toString(),
                     textContent_zh.toString());
+            System.out.println(qdNewsDto.toString());
             qdNewsDtosList.add(qdNewsDto);
         }
 
@@ -80,6 +84,8 @@ public class QdNewsService {
         if(content.isEmpty()||language.isEmpty()){
             return content;
         }else{
+            jsonMap.put("text",content);
+            jsonMap.put("tgtl","nzh");
             if("英语".equals(language)){
                 jsonMap.put("srcl","nen");
             }else if("俄语".equals(language)){
@@ -87,13 +93,14 @@ public class QdNewsService {
             }else if("韩语".equals(language)){
                 jsonMap.put("srcl","nko");
             }
-            jsonMap.put("tgtl","nzh");
-            jsonMap.put("text",content.replace("\"","\\\""));
             String jsonpObject = JSON.toJSONString(jsonMap);
-//            String jsonpObject = jsonMap.toString();
             String translateAPI = "http://192.168.52.3/new/translate";
+
             RestTemplate restTemplate= new RestTemplate();
-            ResponseEntity<String> result = restTemplate.postForEntity(translateAPI, jsonpObject, String.class);
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> httpEntity = new HttpEntity<>(jsonpObject,httpHeaders);
+            ResponseEntity<String> result = restTemplate.postForEntity(translateAPI, httpEntity, String.class);
             return result.getBody();
         }
 

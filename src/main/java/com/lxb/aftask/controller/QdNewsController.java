@@ -18,7 +18,6 @@ public class QdNewsController {
     public String getNewsTransList(){
         JSONArray jsonArray = new JSONArray();
         List<QdNewsDto> list =  qdNewsService.getQdNewsListBatchNull();
-
         return list.toString();
     }
 }
