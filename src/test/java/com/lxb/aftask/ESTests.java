@@ -1,8 +1,30 @@
 package com.lxb.aftask;
 
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
+
+import com.alibaba.fastjson.JSON;
+import com.lxb.aftask.domain.entity.User;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.action.delete.DeleteRequest;
+import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+
+
+import org.elasticsearch.client.indices.CreateIndexRequest;
+import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.cluster.metadata.MetadataIndexTemplateService;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -10,13 +32,72 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+
 @SpringBootTest
-class AftaskApplicationTests {
-
-
+class ESTests {
+    @Autowired
+    private RestHighLevelClient restHighLevelClient;
+    @Autowired
+private User user;
 
     @Test
-    void contextLoads() {
+    void contextLoads() throws IOException {
+       getDoc();
+
+    }
+//    操作文档
+    void insertDoc() throws IOException {
+//        向指定的索引插入文档
+        User user = new User("lxb3", 23, "打杂", "不很高兴");
+//        首先获取要操作的文档
+        IndexRequest getRequest = new IndexRequest("lxb_index");
+        getRequest.id("3");
+
+        getRequest.source(JSON.toJSONString(user), XContentType.JSON);
+//        getRequest.source(JSON.toJSON(user));
+        IndexResponse indexResponse = restHighLevelClient.index(getRequest, RequestOptions.DEFAULT);
+    }
+    void delDoc(String delId) throws IOException {
+        DeleteRequest getIndexRequest = new DeleteRequest("lxb_index");
+        getIndexRequest.id(delId);
+        DeleteResponse delete = restHighLevelClient.delete(getIndexRequest, RequestOptions.DEFAULT);
+
+    }
+    void updateDoc() throws IOException {
+        User user = new User("不知道", 2, "没工作", "不挣钱");
+        UpdateRequest lxb_index = new UpdateRequest("lxb_index", "1");
+        lxb_index.doc(JSON.toJSONString(user),XContentType.JSON);
+
+        UpdateResponse updateResponse = restHighLevelClient.update(lxb_index, RequestOptions.DEFAULT);
+
+    }
+    String  getDoc() throws IOException {
+        GetRequest getRequest = new GetRequest("lxb_index","1");
+        GetResponse documentFields = restHighLevelClient.get(getRequest, RequestOptions.DEFAULT);
+        System.out.println(documentFields);
+        System.out.println(documentFields.getSource());
+        return documentFields.getSourceAsString();
+    }
+    boolean createIndex(String indexName) throws IOException {
+        //        创建索引
+        CreateIndexRequest request = new CreateIndexRequest(indexName);
+        CreateIndexResponse createIndexResponse = restHighLevelClient.indices().create(request, RequestOptions.DEFAULT);
+        return createIndexResponse.isAcknowledged();
+    }
+    boolean delIndex(String indexName) throws IOException {
+//        删除索引
+        DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+        AcknowledgedResponse delete = restHighLevelClient.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT);
+        return delete.isAcknowledged();
+    }
+    boolean isExitIndex(String indexName) throws IOException {
+//        验证索引是否存在
+        GetIndexRequest getIndexRequest = new GetIndexRequest(indexName);
+        boolean exists = restHighLevelClient.indices().exists(getIndexRequest, RequestOptions.DEFAULT);
+        return exists;
+    }
+    void translate(){
         RestTemplate restTemplate= new RestTemplate();
         HttpHeaders httpHeaders= new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
